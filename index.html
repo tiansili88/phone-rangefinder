@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
 
@@ -53,13 +53,13 @@
     <form id="rfform" autocomplete="off">
 
       <label>Eye offset (cm)
-        <input type="number" id="eye" step="0.1" min="3" max="9" value="6.6" />
+        <input type="number" id="eye" step="0.1" min="3" max="9" value="7" />
         <small>Distance between pupil centres.</small>
       </label>
 
       <label>Arm length (cm)
-        <input type="number" id="arm" step="0.5" min="40" max="100" value="70" />
-        <small>Eye-to-card distance with arm extended.</small>
+        <input type="number" id="arm" step="0.5" min="40" max="100" value="60" />
+        <small>Eye-to-phone distance with arm extended.</small>
       </label>
 
       <label>Distance units
@@ -70,7 +70,7 @@
       </label>
 
       <label>Focus distances
-        <input type="text" id="dis" value="1, 1.5, 2, 3, 5, 10" />
+        <input type="text" id="dis" value="0.8, 1, 1.5, 2, 3, 5, 10" />
         <div class="row">
           <button type="button" id="use-defaults">Use defaults for unit</button>
           <small>Comma-separated. ∞ added automatically.</small>
@@ -86,11 +86,11 @@
         <legend>Hyperfocal settings</legend>
 
         <label>Focal length (mm)
-          <input type="number" id="foclen" step="1" min="6" max="2000" value="40" />
+          <input type="number" id="foclen" step="1" min="6" max="2000" value="28" />
         </label>
 
         <label>Max aperture (widest)
-          <input type="number" id="maxf" step="0.1" min="0.7" max="32" value="3.5" />
+          <input type="number" id="maxf" step="0.1" min="0.7" max="32" value="2.8" />
         </label>
 
         <label>Min aperture (narrowest)
@@ -132,8 +132,8 @@
           <input type="number" id="iso" step="100" min="25" max="409600" value="100" />
         </label>
 
-        <label>Guide number (at ISO 100, in <span id="gn-unit">m</span>)
-          <input type="number" id="gn" step="0.1" min="0" placeholder="e.g. 17 m or 56 ft" />
+        <label class="nowrap">Guide number (<span id="gn-unit">m</span>, ISO 100)
+          <input type="number" id="gn" step="0.1" min="0" value="8" />
         </label>
       </fieldset>
 
@@ -148,6 +148,6 @@
 
 </div><!-- /#rotwrap -->
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

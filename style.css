@@ -110,6 +110,7 @@ form label.checkbox {
   gap: 8px;
   color: var(--ink);
 }
+form label.nowrap { white-space: nowrap; }
 
 form input[type="text"],
 form input[type="number"],

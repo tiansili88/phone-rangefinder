@@ -30,7 +30,7 @@ const FILM_DIAG = {
 const FONT_SIZE_MM = 3.4;   // always-large; previously a user setting
 
 const DEFAULT_DIS = {
-  meter: "1, 1.5, 2, 3, 5, 10",
+  meter: "0.8, 1, 1.5, 2, 3, 5, 10",
   feet:  "3, 4, 6, 10, 20",
 };
 
