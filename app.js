@@ -176,17 +176,12 @@ function buildScale(opts) {
     }, label));
   }
 
-  // Hide "0" if a user distance falls within one label-width of it —
-  // otherwise the closest user tick (e.g. "2 ft" with a 60 cm arm) and
-  // the "0" mark sit on top of each other.
-  const labelGap = fontSize * 1.2;
-  const userTicks = distances
-    .map(d => ({ x: tickPos(d.mm), label: d.label }))
-    .filter(t => t.x >= xLeft - 0.1 && t.x <= xRight + 0.1);
-  const showZero = !userTicks.some(t => Math.abs(t.x - xLeft) < labelGap);
-
-  if (showZero) drawTick(xLeft, "0", true);
-  for (const t of userTicks) drawTick(t.x, t.label, false);
+  drawTick(xLeft, "0", true);
+  for (const d of distances) {
+    const x = tickPos(d.mm);
+    if (x < xLeft - 0.1 || x > xRight + 0.1) continue;
+    drawTick(x, d.label, false);
+  }
   drawTick(xRight, "∞", true);
 
   // Unit suffix next to ∞ (with extra clearance — ∞ glyph is wide).
