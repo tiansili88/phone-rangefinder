@@ -4,8 +4,7 @@
   --ink: #f1f1f1;
   --muted: #9a9a9a;
   --accent: #f3b431;
-  --card-bg: #ffffff;
-  --card-ink: #000000;
+  --rule: #444;
 }
 
 * { box-sizing: border-box; }
@@ -16,22 +15,19 @@ html, body {
   background: var(--bg);
   color: var(--ink);
   font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
 }
 
-html, body { overflow: hidden; }
-
-/* Layout container — also the rotation target in portrait viewports */
+/* Layout container — also the rotation target in portrait viewports.
+   When the viewport is portrait, JS sizes #rotwrap to viewport-height ×
+   viewport-width and rotates it 90° so the layout always presents in
+   landscape (works through iOS rotation lock). */
 #rotwrap {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
   width: 100%;
   height: 100%;
 }
-
-/* When the viewport is portrait, JS sizes #rotwrap to viewport-height ×
-   viewport-width and rotates it 90° so the layout always presents in
-   landscape (works through iOS rotation lock). Inline-style based —
-   CSS-only with vh/vw was unreliable in Safari. */
 
 header {
   display: flex;
@@ -45,42 +41,44 @@ header h1 {
   font-size: 14px;
   margin: 0;
   flex: 1;
+  letter-spacing: 0.02em;
 }
 header button {
   background: transparent;
   color: var(--muted);
-  border: 1px solid #444;
+  border: 1px solid var(--rule);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
 }
 
-/* Form on left, card on right — card sits on the user's clean phone-bottom
-   edge when held landscape with volume buttons down. */
-#main {
+/* ── Scale ───────────────────────────────────────────── */
+#scale-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;   /* anchor scale to right edge */
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rule);
+  overflow-x: auto;
+  background: #1d1d1d;
+}
+#scale-host {
+  /* SVG dimensions set inline by JS so the scale renders at exact
+     physical size from the calibrated px/mm. */
+  display: block;
+}
+#scale-host svg { display: block; }
+
+/* ── Below-scale: settings | hfd ─────────────────────── */
+#below-scale {
   display: grid;
   grid-template-columns: 1fr auto;
   overflow: hidden;
   min-height: 0;
 }
 
-#card-stage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  background: #2a2a2a;
-  overflow: auto;
-}
-
-#card-host {
-  background: var(--card-bg);
-  color: var(--card-ink);
-  box-shadow: 0 4px 20px rgba(0,0,0,.4);
-}
-
 form#rfform {
-  padding: 12px 14px;
+  padding: 10px 14px;
   display: grid;
   gap: 8px;
   overflow-y: auto;
@@ -151,7 +149,33 @@ form fieldset legend {
   margin: 8px 0 4px;
 }
 
-/* ───────────── Calibration overlay ───────────── */
+/* ── HFD panel (right side) ──────────────────────────── */
+#hfd-panel {
+  border-left: 1px solid var(--rule);
+  padding: 10px 14px;
+  overflow-y: auto;
+  min-width: 130px;
+}
+#hfd-panel:empty { display: none; }
+.hfd-title {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.hfd-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 0;
+}
+.hfd-row .stop { color: var(--muted); }
+.hfd-row .dist { color: var(--ink); }
+
+/* ── Calibration overlay ─────────────────────────────── */
 .overlay {
   position: absolute;     /* relative to #rotwrap, so inherits rotation */
   inset: 0;
@@ -164,7 +188,7 @@ form fieldset legend {
 }
 .overlay[hidden] { display: none; }
 .cal-inner {
-  width: auto;          /* grow with the calibration bar */
+  width: auto;
   min-width: min(360px, 100%);
   max-width: calc(100% - 24px);
   background: var(--panel);
@@ -181,14 +205,10 @@ form fieldset legend {
   justify-content: center;
   margin: 10px 0;
 }
-/* The calibration target is now just the long side of a credit card —
-   a horizontal bar 85.6 mm wide. Avoids the full-card rectangle that
-   wouldn't fit alongside Safari's chrome. */
 #cal-card {
   background: var(--accent);
   border-radius: 4px;
   height: 8px;
-  /* width set by JS in pixels */
 }
 #cal-slider { width: 100%; }
 .cal-row {

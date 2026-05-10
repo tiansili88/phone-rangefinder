@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
-  <title>Phone Rangefinder Card</title>
-  <link rel="stylesheet" href="style.css?v=4" />
+  <title>Human Rangefinder</title>
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
 
@@ -31,17 +31,18 @@
   </div>
 
   <header>
-    <h1>Rangefinder Card</h1>
+    <h1>Human Rangefinder</h1>
     <button id="recalibrate" type="button">Recalibrate</button>
   </header>
 
-  <div id="main">
-    <!-- Settings form (left pane) -->
-    <form id="rfform" autocomplete="off">
+  <!-- The rangefinder scale itself, rendered at true physical size -->
+  <section id="scale-section">
+    <div id="scale-host"></div>
+  </section>
 
-      <label>Card title
-        <input type="text" id="title" value="My Lens" />
-      </label>
+  <!-- Settings on the left, hyperfocal table on the right -->
+  <div id="below-scale">
+    <form id="rfform" autocomplete="off">
 
       <label>Eye offset (cm)
         <input type="number" id="eye" step="0.1" min="3" max="9" value="6.6" />
@@ -71,14 +72,14 @@
       <label>Font size
         <select id="font">
           <option value="small">Small</option>
-          <option value="medium" selected>Medium</option>
-          <option value="large">Large</option>
+          <option value="medium">Medium</option>
+          <option value="large" selected>Large</option>
         </select>
       </label>
 
       <label class="checkbox">
         <input type="checkbox" id="hfd" checked />
-        Include hyperfocal-distance chart
+        Show hyperfocal-distance table
       </label>
 
       <fieldset id="hfd-fields">
@@ -124,14 +125,11 @@
       <p class="footer-note">Based on tomchuk.com/rf — re-implemented for phone use.</p>
     </form>
 
-    <!-- Card preview (right pane), rendered at true physical size -->
-    <main id="card-stage">
-      <div id="card-host"></div>
-    </main>
+    <aside id="hfd-panel"></aside>
   </div>
 
 </div><!-- /#rotwrap -->
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
