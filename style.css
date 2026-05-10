@@ -114,6 +114,7 @@ form label > input[type="number"] {
   width: 78px;
   justify-self: end;
 }
+form label > input#coc { width: 150px; }   /* room for the 'auto = …' placeholder */
 form label > input[type="text"] { justify-self: stretch; }
 form label > .seg-toggle,
 form label > .row,
