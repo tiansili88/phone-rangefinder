@@ -134,15 +134,19 @@ function el(name, attrs, text) {
 function buildScale(opts) {
   const { eyeMm, armMm, distances, units, fontSize } = opts;
 
-  const scaleLen = Math.max(eyeMm, ...distances.map(d => eyeMm * armMm / d.mm));
+  // Scale spans exactly E_mm (parallax 0 → eye separation). Distances
+  // shorter than the arm length aren't measurable; those ticks fall
+  // outside [xLeft, xRight] and are filtered below.
+  const scaleLen = eyeMm;
   const leftMargin = Math.max(2, fontSize * 1.2);
   const rightMargin = Math.max(2, fontSize * 2.6);   // room for ∞ glyph + unit
   const widthMm = scaleLen + leftMargin + rightMargin;
 
+  // Taller tick marks for clearer reading at arm's length.
   const yTop = 0.4;
-  const yBase = yTop + 2.2;            // short tick bottom = scale baseline
-  const yLong = yBase + 0.6;           // long-tick bottom (0 and ∞)
-  const yLabel = yLong + fontSize + 0.6;
+  const yBase = yTop + 3.4;            // short tick bottom = scale baseline
+  const yLong = yTop + 4.4;            // long-tick bottom (0 and ∞)
+  const yLabel = yLong + fontSize + 0.8;
   const heightMm = yLabel + 1.0;
 
   const xLeft = leftMargin;            // "0"
@@ -160,14 +164,14 @@ function buildScale(opts) {
 
   svg.appendChild(el("line", {
     x1: xLeft, y1: yBase, x2: xRight, y2: yBase,
-    stroke: ink, "stroke-width": 0.25,
+    stroke: ink, "stroke-width": 0.35,
   }));
 
   function drawTick(x, label, isAnchor) {
     const y2 = isAnchor ? yLong : yBase;
     svg.appendChild(el("line", {
       x1: x, y1: yTop, x2: x, y2: y2,
-      stroke: ink, "stroke-width": isAnchor ? 0.45 : 0.25,
+      stroke: ink, "stroke-width": isAnchor ? 0.55 : 0.35,
     }));
     svg.appendChild(el("text", {
       x, y: yLabel, "text-anchor": "middle",
