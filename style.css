@@ -28,21 +28,10 @@ html, body { overflow: hidden; }
   height: 100%;
 }
 
-/* In a portrait viewport, rotate the entire layout 90° so the long screen
-   axis is horizontal. The user holds the phone sideways (volume buttons
-   pointing down) and sees a landscape layout — works regardless of iOS
-   rotation-lock state. */
-@media (orientation: portrait) {
-  #rotwrap {
-    width: 100vh;
-    height: 100vw;
-    transform-origin: 0 0;
-    transform: translateX(100vw) rotate(90deg);
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-}
+/* When the viewport is portrait, JS sizes #rotwrap to viewport-height ×
+   viewport-width and rotates it 90° so the layout always presents in
+   landscape (works through iOS rotation lock). Inline-style based —
+   CSS-only with vh/vw was unreliable in Safari. */
 
 header {
   display: flex;
@@ -66,9 +55,11 @@ header button {
   font-size: 12px;
 }
 
+/* Form on left, card on right — card sits on the user's clean phone-bottom
+   edge when held landscape with volume buttons down. */
 #main {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr auto;
   overflow: hidden;
   min-height: 0;
 }
@@ -173,8 +164,9 @@ form fieldset legend {
 }
 .overlay[hidden] { display: none; }
 .cal-inner {
-  max-width: 560px;
-  width: 100%;
+  width: auto;          /* grow with the calibration bar */
+  min-width: min(360px, 100%);
+  max-width: calc(100% - 24px);
   background: var(--panel);
   border-radius: 10px;
   padding: 12px 16px;

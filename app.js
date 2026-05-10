@@ -310,6 +310,31 @@ function render() {
   host.appendChild(svg);
 }
 
+// Always present in landscape: when the viewport is portrait, rotate the
+// #rotwrap 90° (CW) and size it to viewport-height × viewport-width. Done
+// in JS rather than CSS @media because Safari's handling of vh/vw on a
+// transformed element is unreliable.
+function applyRotation() {
+  const wrap = $("rotwrap");
+  if (!wrap) return;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  if (w < h) {
+    wrap.style.position = "absolute";
+    wrap.style.top = "0";
+    wrap.style.left = "0";
+    wrap.style.width = h + "px";
+    wrap.style.height = w + "px";
+    wrap.style.transformOrigin = "0 0";
+    wrap.style.transform = `translateX(${w}px) rotate(90deg)`;
+  } else {
+    wrap.style.cssText = "";
+  }
+  // Card-host width is calibration-driven; trigger re-render to pick up
+  // any layout-dependent dimensions.
+  if (getPxPerMm()) render();
+}
+
 function init() {
   // Wire up live updates
   document.querySelectorAll("#rfform input, #rfform select").forEach(node => {
@@ -341,6 +366,11 @@ function init() {
 
   // Recalibrate
   $("recalibrate").addEventListener("click", showCalibration);
+
+  // Always-landscape rotation (via JS, not CSS)
+  applyRotation();
+  window.addEventListener("resize", applyRotation);
+  window.addEventListener("orientationchange", applyRotation);
 
   // First render (or calibration if needed)
   render();
