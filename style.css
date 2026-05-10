@@ -142,30 +142,23 @@ form fieldset legend {
   margin: 8px 0 4px;
 }
 
-/* ───────────── Portrait-orientation warning ───────────── */
-#portrait-warning {
-  position: fixed;
-  inset: 0;
-  background: var(--bg);
-  z-index: 200;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  text-align: center;
-}
-#portrait-warning h2 {
-  font-size: 22px;
-  margin: 0 0 12px;
-}
-#portrait-warning p {
-  font-size: 16px;
-  color: var(--muted);
-  max-width: 28em;
-  margin: 0 auto;
-}
+/* ───────────── Always render landscape ─────────────
+   When the viewport is portrait (e.g. phone held upright, or held
+   sideways with rotation lock keeping the viewport portrait), rotate
+   the entire body 90° so the long axis becomes horizontal. The user
+   physically holds the phone in landscape (volume buttons down) and
+   sees the layout upright, regardless of iOS rotation-lock state. */
 @media (orientation: portrait) {
-  #portrait-warning { display: flex; }
+  html { overflow: hidden; }
+  body {
+    width: 100vh;
+    height: 100vw;
+    transform-origin: 0 0;
+    transform: translateX(100vw) rotate(90deg);
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 }
 
 /* ───────────── Calibration overlay ───────────── */
