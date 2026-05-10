@@ -176,12 +176,17 @@ function buildScale(opts) {
     }, label));
   }
 
-  drawTick(xLeft, "0", true);
-  for (const d of distances) {
-    const x = tickPos(d.mm);
-    if (x < xLeft - 0.1 || x > xRight + 0.1) continue;
-    drawTick(x, d.label, false);
-  }
+  // Hide "0" if a user distance falls within one label-width of it —
+  // otherwise the closest user tick (e.g. "2 ft" with a 60 cm arm) and
+  // the "0" mark sit on top of each other.
+  const labelGap = fontSize * 1.2;
+  const userTicks = distances
+    .map(d => ({ x: tickPos(d.mm), label: d.label }))
+    .filter(t => t.x >= xLeft - 0.1 && t.x <= xRight + 0.1);
+  const showZero = !userTicks.some(t => Math.abs(t.x - xLeft) < labelGap);
+
+  if (showZero) drawTick(xLeft, "0", true);
+  for (const t of userTicks) drawTick(t.x, t.label, false);
   drawTick(xRight, "∞", true);
 
   // Unit suffix next to ∞ (with extra clearance — ∞ glyph is wide).
@@ -413,32 +418,6 @@ function init() {
   });
 
   $("recalibrate").addEventListener("click", showCalibration);
-
-  // Reset pinch-zoom on iOS Safari. Browsers don't allow programmatic
-  // zoom reset, but momentarily clearing the viewport meta and putting
-  // it back forces Safari to re-evaluate it, which snaps zoom to 1.
-  $("reset-zoom").addEventListener("click", () => {
-    const meta = document.querySelector('meta[name="viewport"]');
-    const original = meta.content;
-    meta.content = "width=device-width, initial-scale=1, maximum-scale=1";
-    setTimeout(() => {
-      meta.content = original;
-      window.scrollTo(0, 0);
-      applyRotation();
-      render();
-    }, 50);
-  });
-
-  // Show the reset button only when the visual viewport is actually
-  // zoomed (so the header isn't cluttered when there's nothing to fix).
-  if (window.visualViewport) {
-    const updateZoomBtn = () => {
-      const zoomed = Math.abs(window.visualViewport.scale - 1) > 0.01;
-      $("reset-zoom").style.display = zoomed ? "inline-block" : "none";
-    };
-    window.visualViewport.addEventListener("resize", updateZoomBtn);
-    updateZoomBtn();
-  }
 
   applyRotation();
   window.addEventListener("resize", applyRotation);
