@@ -219,10 +219,14 @@ button.big-action {
 }
 
 /* Print-only layout: hide the app, show the printable card SVG.
-   @page sized so an 89×51 mm card fits in the page top-left when
-   printed on standard paper. */
+   Override the dark theme to plain white/black so we don't waste ink
+   on the page background. */
 #print-area { display: none; }
 @media print {
+  html, body {
+    background: white !important;
+    color: black !important;
+  }
   body > #rotwrap { display: none !important; }
   body > #print-area {
     display: block !important;
@@ -230,7 +234,11 @@ button.big-action {
     padding: 0;
     background: white;
   }
-  #print-area svg { display: block; }
+  #print-area svg {
+    display: block;
+    width: 89mm;
+    height: 51mm;
+  }
   @page { margin: 10mm; }
 }
 
