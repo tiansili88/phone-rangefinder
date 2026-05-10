@@ -248,47 +248,172 @@ function buildSidePanel(opts) {
   return wrap.children.length ? wrap : null;
 }
 
-// Builds the hyperfocal table as plain HTML.
-function buildHfdHtml(opts) {
+// ── Printable 3.5″ × 2″ card (full SVG with frame, scale, and tables)
+
+function buildPrintCard(opts) {
+  const W = 88.9, H = 50.8;          // ISO/ANSI business-card size
+  const ff = "Helvetica, Arial, sans-serif";
+
+  const svg = el("svg", {
+    xmlns: SVG_NS,
+    width: `${W}mm`, height: `${H}mm`,
+    viewBox: `0 0 ${W} ${H}`,
+    "shape-rendering": "geometricPrecision",
+    "text-rendering": "geometricPrecision",
+  });
+
+  // Card frame
+  svg.appendChild(el("rect", {
+    x: 0.15, y: 0.15, width: W - 0.3, height: H - 0.3,
+    fill: "white", stroke: "black", "stroke-width": 0.2,
+  }));
+
+  // Scale (centred horizontally) — physical length is exactly E mm.
+  const eyeMm = opts.eyeMm, armMm = opts.armMm;
+  const scaleLen = eyeMm;
+  const xLeft = (W - scaleLen) / 2;
+  const xRight = xLeft + scaleLen;
+  const tickPos = mm => xRight - (eyeMm * armMm / mm);
+
+  const labelFont = 2.4;
+  const yTop = 1.5;
+  const yBase = 4.0;
+  const yLong = 4.7;
+  const yLabel = yLong + labelFont + 0.5;
+
+  svg.appendChild(el("line", {
+    x1: xLeft, y1: yBase, x2: xRight, y2: yBase,
+    stroke: "black", "stroke-width": 0.3,
+  }));
+  function tick(x, label, anchor) {
+    svg.appendChild(el("line", {
+      x1: x, y1: yTop, x2: x, y2: anchor ? yLong : yBase,
+      stroke: "black", "stroke-width": anchor ? 0.5 : 0.3,
+    }));
+    svg.appendChild(el("text", {
+      x, y: yLabel, "text-anchor": "middle",
+      "font-size": labelFont, "font-family": ff,
+    }, label));
+  }
+  tick(xLeft, "0", true);
+  for (const d of opts.distances) {
+    const x = tickPos(d.mm);
+    if (x < xLeft - 0.1 || x > xRight + 0.1) continue;
+    tick(x, d.label, false);
+  }
+  tick(xRight, "∞", true);
+  svg.appendChild(el("text", {
+    x: xRight + 1.5, y: yLabel, "text-anchor": "start",
+    "font-size": labelFont * 0.75, fill: "#444",
+    "font-style": "italic", "font-family": ff,
+  }, opts.units === "feet" ? "ft" : "m"));
+
+  // Tables below the scale: HFD on the left, Flash on the right.
+  const tableTop = yLabel + 3;
+  const titleFont = 2.0;
+  const subFont = 1.55;
+  const rowFont = 1.85;
+  const rowH = 2.15;
+  const colW = 18;                    // stop label → distance column
+
+  function drawColumn(xCol, data) {
+    let y = tableTop + titleFont;
+    svg.appendChild(el("text", {
+      x: xCol, y, "font-size": titleFont, "font-family": ff,
+      "font-weight": "bold", "letter-spacing": "0.05em",
+    }, data.title.toUpperCase()));
+    y += subFont + 0.7;
+    svg.appendChild(el("text", {
+      x: xCol, y, "font-size": subFont, fill: "#444", "font-family": ff,
+    }, data.sub));
+    y += rowH * 1.2;
+    for (const r of data.rows) {
+      if (y + rowFont > H - 1.5) break;
+      svg.appendChild(el("text", {
+        x: xCol, y, "font-size": rowFont, fill: "#444", "font-family": ff,
+      }, fmtStop(r.stopName)));
+      svg.appendChild(el("text", {
+        x: xCol + colW, y, "font-size": rowFont,
+        "text-anchor": "end", "font-family": ff,
+      }, r.dist));
+      y += rowH;
+    }
+  }
+
+  const hfd = computeHfd(opts);
+  const flash = computeFlash(opts);
+  if (hfd && flash) {
+    drawColumn(5, hfd);
+    drawColumn(W / 2 + 4, flash);
+  } else if (hfd) {
+    drawColumn((W - colW) / 2, hfd);
+  } else if (flash) {
+    drawColumn((W - colW) / 2, flash);
+  }
+
+  // Tiny credit at bottom-right
+  svg.appendChild(el("text", {
+    x: W - 1.5, y: H - 1.2, "text-anchor": "end",
+    "font-size": 1.3, fill: "#999", "font-family": ff,
+  }, "tomchuk.com/rf · Sili Tian"));
+
+  return svg;
+}
+
+// ── HFD / flash row computation (shared by HTML side panel + print SVG)
+
+// Each row is { stopName: <number>, dist: <formatted string> }. Callers
+// format stopName via fmtStop where needed.
+function computeHfd(opts) {
   const { hfd, foclen, maxN, minN, film, cocOverride, units } = opts;
   if (!hfd) return null;
-
   const c = (cocOverride && cocOverride > 0)
     ? cocOverride
     : (FILM_DIAG[film] || FILM_DIAG["135"]) / 1500;
   const stops = fStopList(maxN, minN);
+  const rows = stops.map(N => ({
+    stopName: N.name,
+    dist: fmtDistance((foclen * foclen) / (N.exact * c), units),
+  }));
+  return {
+    title: "Hyperfocal",
+    sub: `${trimNum(foclen)} mm · ${fmtStop(maxN)}–${fmtStop(minN)}`,
+    rows,
+  };
+}
 
+// gn_eff = gn_base × √(ISO/100); distance = gn_eff / aperture (in user units).
+function computeFlash(opts) {
+  const { flash, iso, gn, units } = opts;
+  if (!flash || !(gn > 0) || !(iso > 0)) return null;
+  const gnEff = gn * Math.sqrt(iso / 100);
+  const factor = units === "feet" ? 304.8 : 1000;
+  const rows = FLASH_STOPS.map(N => ({
+    stopName: N.name,
+    dist: fmtDistance((gnEff / N.exact) * factor, units),
+  }));
+  return {
+    title: "Flash",
+    sub: `ISO ${iso} · GN ${trimNum(+gnEff.toFixed(1))}`,
+    rows,
+  };
+}
+
+function buildHfdHtml(opts) {
+  const data = computeHfd(opts);
+  if (!data) return null;
   const wrap = document.createElement("div");
-  wrap.appendChild(makeSectionTitle(
-    "Hyperfocal",
-    `${trimNum(foclen)} mm · ${fmtStop(maxN)}–${fmtStop(minN)}`
-  ));
-  for (const N of stops) {
-    const Hmm = (foclen * foclen) / (N.exact * c);
-    wrap.appendChild(makeRow(N.name, fmtDistance(Hmm, units)));
-  }
+  wrap.appendChild(makeSectionTitle(data.title, data.sub));
+  for (const r of data.rows) wrap.appendChild(makeRow(r.stopName, r.dist));
   return wrap;
 }
 
-// Flash exposure table.
-//   gn_eff = gn_base × √(ISO / 100)
-//   distance = gn_eff / aperture
-// gn is entered in the user's chosen distance unit (feet or metres).
 function buildFlashHtml(opts) {
-  const { flash, iso, gn, units } = opts;
-  if (!flash || !(gn > 0) || !(iso > 0)) return null;
-
-  const gnEff = gn * Math.sqrt(iso / 100);
-  const factor = units === "feet" ? 304.8 : 1000;
+  const data = computeFlash(opts);
+  if (!data) return null;
   const wrap = document.createElement("div");
-  wrap.appendChild(makeSectionTitle(
-    "Flash",
-    `ISO ${iso} · GN ${trimNum(+gnEff.toFixed(1))}`
-  ));
-  for (const N of FLASH_STOPS) {
-    const distUserUnits = gnEff / N.exact;
-    wrap.appendChild(makeRow(N.name, fmtDistance(distUserUnits * factor, units)));
-  }
+  wrap.appendChild(makeSectionTitle(data.title, data.sub));
+  for (const r of data.rows) wrap.appendChild(makeRow(r.stopName, r.dist));
   return wrap;
 }
 
@@ -424,6 +549,16 @@ function init() {
   });
 
   $("recalibrate").addEventListener("click", showCalibration);
+
+  // Print card: render the SVG at true 89×51 mm into #print-area, then
+  // open the platform print dialog (Save as PDF / AirPrint on iOS).
+  $("print-card").addEventListener("click", () => {
+    const opts = readForm();
+    const area = $("print-area");
+    area.innerHTML = "";
+    area.appendChild(buildPrintCard(opts));
+    setTimeout(() => window.print(), 50);
+  });
 
   applyRotation();
   window.addEventListener("resize", applyRotation);

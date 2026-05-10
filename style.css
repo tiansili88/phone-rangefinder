@@ -188,6 +188,33 @@ form fieldset legend {
   margin: 8px 0 4px;
 }
 
+button.big-action {
+  background: var(--accent);
+  color: #111;
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 6px 0;
+}
+
+/* Print-only layout: hide the app, show the printable card SVG.
+   @page sized so an 89×51 mm card fits in the page top-left when
+   printed on standard paper. */
+#print-area { display: none; }
+@media print {
+  body > #rotwrap { display: none !important; }
+  body > #print-area {
+    display: block !important;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+  #print-area svg { display: block; }
+  @page { margin: 10mm; }
+}
+
 /* ── HFD / flash panel (right side) ──────────────────── */
 #hfd-panel {
   border-left: 1px solid var(--rule);
