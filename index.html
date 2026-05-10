@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <!-- maximum-scale=1, user-scalable=no: pinch-zoom would break the
+       physical calibration. iOS still allows zoom for accessibility,
+       which is why there's also a Reset button in the header. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="stylesheet" href="style.css?v=12" />
 </head>
 <body>
 
@@ -45,6 +48,7 @@
 
   <header>
     <h1>Human Rangefinder</h1>
+    <button id="reset-zoom" type="button" title="Reset zoom to 100%">100%</button>
     <button id="recalibrate" type="button">Recalibrate</button>
   </header>
 
@@ -148,6 +152,6 @@
 
 </div><!-- /#rotwrap -->
 
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>
