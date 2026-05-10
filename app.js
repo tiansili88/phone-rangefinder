@@ -31,7 +31,7 @@ const FONT_SIZE_MM = 3.4;   // always-large; previously a user setting
 
 const DEFAULT_DIS = {
   meter: "0.8, 1, 1.5, 2, 3, 5, 10",
-  feet:  "3, 4, 6, 10, 20",
+  feet:  "2, 3, 4, 6, 10, 20",
 };
 
 // Standard f-stops: each entry is {name (displayed), exact (= √2ⁿ)}.
