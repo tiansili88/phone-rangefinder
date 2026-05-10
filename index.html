@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=18" />
+  <link rel="stylesheet" href="style.css?v=19" />
 </head>
 <body>
 
@@ -55,21 +55,21 @@
   <div id="below-scale">
     <form id="rfform" autocomplete="off">
 
-      <label>Eye offset (cm)
-        <input type="number" id="eye" step="0.1" min="3" max="9" value="7" />
-        <small>Distance between pupil centres.</small>
-      </label>
-
-      <label>Arm length (cm)
-        <input type="number" id="arm" step="0.5" min="40" max="100" value="60" />
-        <small>Eye-to-phone distance with arm extended.</small>
-      </label>
-
       <label>Distance units
         <div id="units" class="seg-toggle" data-value="meter">
           <button type="button" class="seg-opt active" data-value="meter">Metres</button>
           <button type="button" class="seg-opt" data-value="feet">Feet</button>
         </div>
+      </label>
+
+      <label>Eye offset (<span class="u-len">cm</span>)
+        <input type="number" id="eye" step="0.1" min="1" max="10" value="7" />
+        <small>Distance between pupil centres.</small>
+      </label>
+
+      <label>Arm length (<span class="u-len">cm</span>)
+        <input type="number" id="arm" step="0.1" min="15" max="120" value="60" />
+        <small>Eye-to-phone distance with arm extended.</small>
       </label>
 
       <label>Focus distances
@@ -157,6 +157,6 @@
   <!-- Hidden in screen layout; shown only when printing -->
   <div id="print-area"></div>
 
-  <script src="app.js?v=18"></script>
+  <script src="app.js?v=19"></script>
 </body>
 </html>

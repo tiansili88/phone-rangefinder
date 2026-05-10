@@ -431,11 +431,17 @@ function fieldValue(id) {
   return node.value;
 }
 
+// Tracks the unit currently displayed in the eye-offset and arm-length
+// fields. Stays in sync with the units toggle: cm when "meter", in when
+// "feet".
+let bodyUnit = "meter";
+
 function readForm() {
   const units = fieldValue("units");
+  const lenFactor = bodyUnit === "feet" ? 25.4 : 10;   // input → mm
   return {
-    eyeMm: parseFloat($("eye").value) * 10,
-    armMm: parseFloat($("arm").value) * 10,
+    eyeMm: parseFloat($("eye").value) * lenFactor,
+    armMm: parseFloat($("arm").value) * lenFactor,
     distances: parseDistances($("dis").value, units),
     units,
     fontSize: FONT_SIZE_MM,
@@ -542,8 +548,23 @@ function init() {
   });
 
   $("units").addEventListener("change", () => {
-    const cur = $("dis").value.replace(/\s/g, "");
     const u = fieldValue("units");
+
+    // Convert eye/arm fields to match the new unit (cm ↔ in)
+    if (u !== bodyUnit) {
+      const conv = u === "feet" ? (v) => v / 2.54 : (v) => v * 2.54;
+      const eye = parseFloat($("eye").value);
+      const arm = parseFloat($("arm").value);
+      if (Number.isFinite(eye)) $("eye").value = (+conv(eye).toFixed(1)).toString();
+      if (Number.isFinite(arm)) $("arm").value = (+conv(arm).toFixed(1)).toString();
+      bodyUnit = u;
+      document.querySelectorAll(".u-len").forEach(el => {
+        el.textContent = u === "feet" ? "in" : "cm";
+      });
+    }
+
+    // Auto-swap focus-distance defaults if user hasn't customised them
+    const cur = $("dis").value.replace(/\s/g, "");
     const other = u === "meter" ? "feet" : "meter";
     if (cur === DEFAULT_DIS[other].replace(/\s/g, "")) {
       $("dis").value = DEFAULT_DIS[u];
