@@ -218,28 +218,33 @@ function makeRow(stopName, distText) {
   return row;
 }
 
-function makeSectionTitle(text) {
-  const el = document.createElement("div");
-  el.className = "hfd-title";
-  el.textContent = text;
-  return el;
+// Two-line section header: bold uppercase name + smaller params.
+// Keeps each side-panel column narrow even when params are long.
+function makeSectionTitle(name, params) {
+  const wrap = document.createElement("div");
+  wrap.className = "hfd-title";
+  const n = document.createElement("div");
+  n.className = "ht-name";
+  n.textContent = name;
+  const p = document.createElement("div");
+  p.className = "ht-params";
+  p.textContent = params;
+  wrap.appendChild(n);
+  wrap.appendChild(p);
+  return wrap;
 }
 
 // Builds the right-hand panel content: stitches together optional HFD
 // and flash sections.
+// HFD and flash sections sit side-by-side as columns when both are
+// enabled — keeps each table narrow so the form panel stays usable.
 function buildSidePanel(opts) {
   const wrap = document.createElement("div");
+  wrap.className = "side-panel-grid";
   const hfd = buildHfdHtml(opts);
   if (hfd) wrap.appendChild(hfd);
   const flash = buildFlashHtml(opts);
-  if (flash) {
-    if (hfd) {
-      const sep = document.createElement("hr");
-      sep.className = "hfd-sep";
-      wrap.appendChild(sep);
-    }
-    wrap.appendChild(flash);
-  }
+  if (flash) wrap.appendChild(flash);
   return wrap.children.length ? wrap : null;
 }
 
@@ -255,7 +260,8 @@ function buildHfdHtml(opts) {
 
   const wrap = document.createElement("div");
   wrap.appendChild(makeSectionTitle(
-    `Hyperfocal — ${trimNum(foclen)} mm  ${fmtStop(maxN)}–${fmtStop(minN)}`
+    "Hyperfocal",
+    `${trimNum(foclen)} mm · ${fmtStop(maxN)}–${fmtStop(minN)}`
   ));
   for (const N of stops) {
     const Hmm = (foclen * foclen) / (N.exact * c);
@@ -276,7 +282,8 @@ function buildFlashHtml(opts) {
   const factor = units === "feet" ? 304.8 : 1000;
   const wrap = document.createElement("div");
   wrap.appendChild(makeSectionTitle(
-    `Flash — ISO ${iso}, GN ${trimNum(+gnEff.toFixed(1))}`
+    "Flash",
+    `ISO ${iso} · GN ${trimNum(+gnEff.toFixed(1))}`
   ));
   for (const N of FLASH_STOPS) {
     const distUserUnits = gnEff / N.exact;
