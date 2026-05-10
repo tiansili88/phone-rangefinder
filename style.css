@@ -103,7 +103,9 @@ form label {
   gap: 2px;
   font-size: 12px;
   color: var(--muted);
+  white-space: nowrap;        /* keep label text on one line */
 }
+form label small { white-space: normal; }   /* allow helper text to wrap */
 form label.checkbox {
   display: flex;
   align-items: center;
