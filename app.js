@@ -72,22 +72,11 @@ function showCalibration() {
   const lbl = $("cal-pxmm");
   slider.value = String(getPxPerMm() || 3.78);
   applySlider();
-  checkOrientation();
   function applySlider() {
     const px = parseFloat(slider.value);
     card.style.width = (85.6 * px) + "px";
     card.style.height = (54 * px) + "px";
     lbl.textContent = px.toFixed(2);
-    checkOrientation();
-  }
-  // Hide controls and show "rotate" message if the card at the current
-  // px/mm doesn't fit the viewport width (with a small margin).
-  function checkOrientation() {
-    const px = parseFloat(slider.value);
-    const cardW = 85.6 * px;
-    const fits = cardW + 32 <= window.innerWidth;
-    $("cal-rotate").hidden = fits;
-    $("cal-controls").hidden = !fits;
   }
   if (!calWired) {
     slider.addEventListener("input", applySlider);
@@ -95,12 +84,6 @@ function showCalibration() {
       setPxPerMm(parseFloat(slider.value));
       $("calibration").hidden = true;
       render();
-    });
-    window.addEventListener("resize", () => {
-      if (!$("calibration").hidden) checkOrientation();
-    });
-    window.addEventListener("orientationchange", () => {
-      if (!$("calibration").hidden) checkOrientation();
     });
     calWired = true;
   }
@@ -325,9 +308,6 @@ function render() {
   host.style.width = wPx + "px";
   host.style.height = hPx + "px";
   host.appendChild(svg);
-
-  // Show landscape hint if card overflows viewport
-  $("orientation-hint").hidden = (wPx <= window.innerWidth - 24);
 }
 
 function init() {
@@ -359,19 +339,8 @@ function init() {
     render();
   });
 
-  // Toggle settings visibility (for using rangefinder full-screen on phone)
-  $("toggle-form").addEventListener("click", () => {
-    document.body.classList.toggle("form-hidden");
-    const hidden = document.body.classList.contains("form-hidden");
-    $("toggle-form").textContent = hidden ? "Show settings" : "Hide settings";
-    $("toggle-form").setAttribute("aria-expanded", String(!hidden));
-  });
-
   // Recalibrate
   $("recalibrate").addEventListener("click", showCalibration);
-
-  // Re-render on resize (orientation hint depends on viewport)
-  window.addEventListener("resize", render);
 
   // First render (or calibration if needed)
   render();

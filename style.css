@@ -14,20 +14,27 @@ html, body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html, body { height: 100%; }
+
+body {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
 }
 
 header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 10px;
+  padding: 6px 12px;
   background: var(--panel);
   border-bottom: 1px solid #000;
-  position: sticky; top: 0; z-index: 10;
 }
 header h1 {
-  font-size: 16px;
+  font-size: 14px;
   margin: 0;
   flex: 1;
 }
@@ -35,19 +42,25 @@ header button {
   background: transparent;
   color: var(--muted);
   border: 1px solid #444;
-  padding: 6px 10px;
+  padding: 4px 10px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
+}
+
+#main {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  overflow: hidden;
+  min-height: 0;
 }
 
 #card-stage {
-  padding: 16px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  overflow-x: auto;        /* allow horizontal scroll if card wider than screen */
+  justify-content: center;
+  padding: 12px;
   background: #2a2a2a;
+  overflow: auto;       /* in case the card is taller than the panel */
 }
 
 #card-host {
@@ -57,25 +70,18 @@ header button {
   /* width/height set inline by JS using calibration */
 }
 
-#orientation-hint {
-  color: var(--muted);
-  font-size: 12px;
-  margin: 0;
-  text-align: center;
-}
-
 form#rfform {
-  padding: 16px;
+  padding: 12px 14px;
   display: grid;
-  gap: 12px;
-  max-width: 520px;
-  margin: 0 auto;
+  gap: 8px;
+  overflow-y: auto;
+  align-content: start;
 }
 
 form label {
   display: grid;
-  gap: 4px;
-  font-size: 13px;
+  gap: 2px;
+  font-size: 12px;
   color: var(--muted);
 }
 form label.checkbox {
@@ -92,7 +98,7 @@ form select {
   color: var(--ink);
   border: 1px solid #333;
   border-radius: 6px;
-  padding: 10px 12px;
+  padding: 6px 10px;
   font-size: 16px;          /* prevents iOS auto-zoom on focus */
   width: 100%;
 }
@@ -110,36 +116,59 @@ form button {
   background: var(--accent);
   color: #111;
   border: 0;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
 form fieldset {
   border: 1px solid #333;
   border-radius: 8px;
-  padding: 10px 14px 14px;
+  padding: 6px 10px 10px;
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 form fieldset legend {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
-  padding: 0 6px;
+  padding: 0 4px;
 }
 
-footer {
+.footer-note {
+  font-size: 10px;
+  color: var(--muted);
   text-align: center;
-  color: var(--muted);
-  padding: 16px;
+  margin: 8px 0 4px;
 }
 
-/* Hidden form mode — used when "Hide settings" pressed */
-body.form-hidden form#rfform,
-body.form-hidden footer { display: none; }
+/* ───────────── Portrait-orientation warning ───────────── */
+#portrait-warning {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+}
+#portrait-warning h2 {
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+#portrait-warning p {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 28em;
+  margin: 0 auto;
+}
+@media (orientation: portrait) {
+  #portrait-warning { display: flex; }
+}
 
-/* Calibration overlay */
+/* ───────────── Calibration overlay ───────────── */
 .overlay {
   position: fixed;
   inset: 0;
@@ -156,14 +185,17 @@ body.form-hidden footer { display: none; }
   width: 100%;
   background: var(--panel);
   border-radius: 10px;
-  padding: 18px;
+  padding: 14px 18px;
   text-align: center;
+  max-height: 100%;
+  overflow-y: auto;
 }
-.cal-inner h2 { margin-top: 0; }
+.cal-inner h2 { margin-top: 0; font-size: 18px; }
+.cal-inner p { font-size: 13px; }
 #cal-card-wrap {
   display: flex;
   justify-content: center;
-  margin: 18px 0;
+  margin: 14px 0;
 }
 #cal-card {
   background: var(--accent);
@@ -175,8 +207,8 @@ body.form-hidden footer { display: none; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
-  font-size: 14px;
+  margin-top: 8px;
+  font-size: 13px;
 }
 #cal-save {
   background: var(--accent);
@@ -187,14 +219,7 @@ body.form-hidden footer { display: none; }
   font-weight: 600;
 }
 .cal-note {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
-  margin-top: 12px;
+  margin-top: 10px;
 }
-.cal-rotate-msg {
-  font-size: 16px;
-  line-height: 1.5;
-  margin: 24px 0;
-}
-#cal-rotate[hidden] { display: none; }
-#cal-controls[hidden] { display: none; }
