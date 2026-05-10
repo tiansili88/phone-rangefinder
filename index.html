@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
 
@@ -63,10 +63,10 @@
       </label>
 
       <label>Distance units
-        <select id="units">
-          <option value="feet">Feet</option>
-          <option value="meter" selected>Metres</option>
-        </select>
+        <div id="units" class="seg-toggle" data-value="meter">
+          <button type="button" class="seg-opt active" data-value="meter">Metres</button>
+          <button type="button" class="seg-opt" data-value="feet">Feet</button>
+        </div>
       </label>
 
       <label>Focus distances
@@ -97,24 +97,22 @@
           <input type="number" id="minf" step="1" min="2" max="128" value="22" />
         </label>
 
-        <label>Film / sensor size
-          <select id="film">
-            <option value="811">Minox (8×11 mm)</option>
-            <option value="110">110</option>
-            <option value="43">4/3rds</option>
-            <option value="aps">APS-C</option>
-            <option value="apsh">APS-H</option>
-            <option value="135" selected>135 (35 mm)</option>
-            <option value="645">6×4.5</option>
-            <option value="66">6×6</option>
-            <option value="67">6×7</option>
-            <option value="69">6×9</option>
-            <option value="612">6×12</option>
-            <option value="617">6×17</option>
-            <option value="45">4×5</option>
-            <option value="57">5×7</option>
-            <option value="810">8×10</option>
-          </select>
+        <label>Film size
+          <div id="film" class="seg-toggle" data-value="135">
+            <button type="button" class="seg-opt"        data-value="811">Minox</button>
+            <button type="button" class="seg-opt"        data-value="110">110</button>
+            <button type="button" class="seg-opt"        data-value="half">Half-frame</button>
+            <button type="button" class="seg-opt active" data-value="135">135</button>
+            <button type="button" class="seg-opt"        data-value="645">6×4.5</button>
+            <button type="button" class="seg-opt"        data-value="66">6×6</button>
+            <button type="button" class="seg-opt"        data-value="67">6×7</button>
+            <button type="button" class="seg-opt"        data-value="69">6×9</button>
+            <button type="button" class="seg-opt"        data-value="612">6×12</button>
+            <button type="button" class="seg-opt"        data-value="617">6×17</button>
+            <button type="button" class="seg-opt"        data-value="45">4×5</button>
+            <button type="button" class="seg-opt"        data-value="57">5×7</button>
+            <button type="button" class="seg-opt"        data-value="810">8×10</button>
+          </div>
         </label>
 
         <label>Custom CoC (mm, optional)
@@ -139,7 +137,10 @@
         </label>
       </fieldset>
 
-      <p class="footer-note">Based on tomchuk.com/rf — re-implemented for phone use.</p>
+      <p class="footer-note">
+        Based on <a href="https://tomchuk.com/rf/" target="_blank" rel="noopener">tomchuk.com/rf</a> by Tom Achtemichuk.<br>
+        Re-implemented for phone use by Sili Tian.
+      </p>
     </form>
 
     <aside id="hfd-panel"></aside>
@@ -147,6 +148,6 @@
 
 </div><!-- /#rotwrap -->
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

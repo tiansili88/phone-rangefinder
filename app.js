@@ -12,21 +12,19 @@
 const CAL_KEY = "rfcard.pxPerMm";
 
 const FILM_DIAG = {
-  "811": Math.hypot(8, 11),
-  "110": Math.hypot(13, 17),
-  "43":  Math.hypot(13.5, 18),
-  "aps": Math.hypot(15.6, 23.6),
-  "apsh":Math.hypot(19, 28.7),
-  "135": Math.hypot(24, 36),
-  "645": Math.hypot(42, 56),
-  "66":  Math.hypot(56, 56),
-  "67":  Math.hypot(56, 70),
-  "69":  Math.hypot(56, 84),
-  "612": Math.hypot(56, 118),
-  "617": Math.hypot(56, 168),
-  "45":  Math.hypot(102, 127),
-  "57":  Math.hypot(127, 178),
-  "810": Math.hypot(203, 254),
+  "811":  Math.hypot(8, 11),
+  "110":  Math.hypot(13, 17),
+  "half": Math.hypot(18, 24),    // half-frame 35mm
+  "135":  Math.hypot(24, 36),
+  "645":  Math.hypot(42, 56),
+  "66":   Math.hypot(56, 56),
+  "67":   Math.hypot(56, 70),
+  "69":   Math.hypot(56, 84),
+  "612":  Math.hypot(56, 118),
+  "617":  Math.hypot(56, 168),
+  "45":   Math.hypot(102, 127),
+  "57":   Math.hypot(127, 178),
+  "810":  Math.hypot(203, 254),
 };
 
 const FONT_SIZE_MM = 3.4;   // always-large; previously a user setting
@@ -285,8 +283,17 @@ function buildFlashHtml(opts) {
 
 // ───────────────────── form wiring ─────────────────────
 
+// Read either an <input>/<select>'s .value or a .seg-toggle's dataset.value.
+function fieldValue(id) {
+  const node = $(id);
+  if (node.classList && node.classList.contains("seg-toggle")) {
+    return node.dataset.value;
+  }
+  return node.value;
+}
+
 function readForm() {
-  const units = $("units").value;
+  const units = fieldValue("units");
   return {
     eyeMm: parseFloat($("eye").value) * 10,
     armMm: parseFloat($("arm").value) * 10,
@@ -297,7 +304,7 @@ function readForm() {
     foclen: parseFloat($("foclen").value),
     maxN: parseFloat($("maxf").value),
     minN: parseFloat($("minf").value),
-    film: $("film").value,
+    film: fieldValue("film"),
     cocOverride: parseFloat($("coc").value) || 0,
     flash: $("flash").checked,
     iso: parseFloat($("iso").value),
@@ -353,8 +360,24 @@ function applyRotation() {
   }
 }
 
+// Wire segmented toggles: clicking an option updates active class +
+// dataset.value, then dispatches a "change" event so the rest of the
+// form-wiring picks it up.
+function wireToggle(group) {
+  group.addEventListener("click", e => {
+    const opt = e.target.closest(".seg-opt");
+    if (!opt || opt.classList.contains("active")) return;
+    group.querySelectorAll(".seg-opt").forEach(o => o.classList.remove("active"));
+    opt.classList.add("active");
+    group.dataset.value = opt.dataset.value;
+    group.dispatchEvent(new Event("change"));
+  });
+}
+
 function init() {
-  document.querySelectorAll("#rfform input, #rfform select").forEach(node => {
+  document.querySelectorAll(".seg-toggle").forEach(wireToggle);
+
+  document.querySelectorAll("#rfform input, #rfform select, #rfform .seg-toggle").forEach(node => {
     node.addEventListener("input", render);
     node.addEventListener("change", render);
   });
@@ -369,21 +392,22 @@ function init() {
 
   // Keep the GN-unit hint in sync with the distance unit selector
   function refreshGnUnit() {
-    $("gn-unit").textContent = $("units").value === "feet" ? "ft" : "m";
+    $("gn-unit").textContent = fieldValue("units") === "feet" ? "ft" : "m";
   }
   $("units").addEventListener("change", refreshGnUnit);
   refreshGnUnit();
 
   $("use-defaults").addEventListener("click", () => {
-    $("dis").value = DEFAULT_DIS[$("units").value] || DEFAULT_DIS.meter;
+    $("dis").value = DEFAULT_DIS[fieldValue("units")] || DEFAULT_DIS.meter;
     render();
   });
 
   $("units").addEventListener("change", () => {
     const cur = $("dis").value.replace(/\s/g, "");
-    const other = $("units").value === "meter" ? "feet" : "meter";
+    const u = fieldValue("units");
+    const other = u === "meter" ? "feet" : "meter";
     if (cur === DEFAULT_DIS[other].replace(/\s/g, "")) {
-      $("dis").value = DEFAULT_DIS[$("units").value];
+      $("dis").value = DEFAULT_DIS[u];
     }
     render();
   });
