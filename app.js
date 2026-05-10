@@ -31,7 +31,7 @@ const FONT_SIZE_MM = 3.4;   // always-large; previously a user setting
 
 const DEFAULT_DIS = {
   meter: "0.8, 1, 1.5, 2, 3, 5, 10",
-  feet:  "2, 3, 4, 6, 10, 20",
+  feet:  "3, 4, 6, 10, 20",
 };
 
 // Standard f-stops: each entry is {name (displayed), exact (= √2ⁿ)}.
@@ -201,8 +201,8 @@ function buildScale(opts) {
   return { svg, widthMm, heightMm };
 }
 
-// Standard whole-stop range used for the flash exposure table.
-const FLASH_STOPS = STD_STOPS.filter(s => s.name >= 2 && s.name <= 22);
+// (Flash now uses the user's lens aperture range, same as HFD, so the
+//  two side-by-side tables align row-by-row.)
 
 function makeRow(stopName, distText) {
   const row = document.createElement("div");
@@ -383,12 +383,15 @@ function computeHfd(opts) {
 }
 
 // gn_eff = gn_base × √(ISO/100); distance = gn_eff / aperture (in user units).
+// Uses the lens aperture range (maxN..minN), matching the HFD table so the
+// two side-by-side tables align row-by-row.
 function computeFlash(opts) {
-  const { flash, iso, gn, units } = opts;
+  const { flash, iso, gn, units, maxN, minN } = opts;
   if (!flash || !(gn > 0) || !(iso > 0)) return null;
   const gnEff = gn * Math.sqrt(iso / 100);
   const factor = units === "feet" ? 304.8 : 1000;
-  const rows = FLASH_STOPS.map(N => ({
+  const stops = fStopList(maxN, minN);
+  const rows = stops.map(N => ({
     stopName: N.name,
     dist: fmtDistance((gnEff / N.exact) * factor, units),
   }));

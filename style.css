@@ -71,7 +71,7 @@ header button {
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
-  padding: 10px 70px 6px 6px;
+  padding: 10px 110px 6px 6px;
   overflow-x: auto;
   background: var(--bg);
 }
