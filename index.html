@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=22" />
+  <link rel="stylesheet" href="style.css?v=23" />
 </head>
 <body>
 
@@ -64,12 +64,10 @@
 
       <label>Eye offset (<span class="u-len">cm</span>)
         <input type="number" id="eye" step="0.1" min="1" max="10" value="7" />
-        <small>Distance between pupil centres.</small>
       </label>
 
       <label>Arm length (<span class="u-len">cm</span>)
         <input type="number" id="arm" step="0.1" min="15" max="120" value="60" />
-        <small>Eye-to-phone distance with arm extended.</small>
       </label>
 
       <label>Focus distances
@@ -135,9 +133,8 @@
           <input type="number" id="iso" step="100" min="25" max="409600" value="100" />
         </label>
 
-        <label>Guide number (<span id="gn-unit">m</span>)
+        <label>Guide no. at ISO 100 (<span id="gn-unit">m</span>)
           <input type="number" id="gn" step="0.1" min="0" value="8" />
-          <small>at ISO 100</small>
         </label>
       </fieldset>
 
@@ -158,6 +155,6 @@
   <!-- Hidden in screen layout; shown only when printing -->
   <div id="print-area"></div>
 
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>

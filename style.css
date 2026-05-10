@@ -98,14 +98,30 @@ form#rfform {
   align-content: start;
 }
 
+/* Horizontal layout: label text on the left, input on the right.
+   Toggles, helper rows, and small subtitles span the full row below. */
 form label {
   display: grid;
-  gap: 2px;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 4px;
   font-size: 12px;
   color: var(--muted);
-  white-space: nowrap;        /* keep label text on one line */
+  white-space: nowrap;
 }
-form label small { white-space: normal; }   /* allow helper text to wrap */
+form label > input[type="number"] {
+  width: 78px;
+  justify-self: end;
+}
+form label > input[type="text"] { justify-self: stretch; }
+form label > .seg-toggle,
+form label > .row,
+form label > small {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+}
+form label > small { white-space: normal; }
 form label.checkbox {
   display: flex;
   align-items: center;
