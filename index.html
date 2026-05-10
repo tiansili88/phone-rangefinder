@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
 
@@ -30,15 +30,15 @@
     </div>
   </div>
 
+  <!-- Scale at the very top — clear contrast against the subject -->
+  <section id="scale-section">
+    <div id="scale-host"></div>
+  </section>
+
   <header>
     <h1>Human Rangefinder</h1>
     <button id="recalibrate" type="button">Recalibrate</button>
   </header>
-
-  <!-- The rangefinder scale itself, rendered at true physical size -->
-  <section id="scale-section">
-    <div id="scale-host"></div>
-  </section>
 
   <!-- Settings on the left, hyperfocal table on the right -->
   <div id="below-scale">
@@ -67,14 +67,6 @@
           <button type="button" id="use-defaults">Use defaults for unit</button>
           <small>Comma-separated. ∞ added automatically.</small>
         </div>
-      </label>
-
-      <label>Font size
-        <select id="font">
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large" selected>Large</option>
-        </select>
       </label>
 
       <label class="checkbox">
@@ -130,6 +122,6 @@
 
 </div><!-- /#rotwrap -->
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

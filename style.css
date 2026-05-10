@@ -24,7 +24,7 @@ html, body {
    landscape (works through iOS rotation lock). */
 #rotwrap {
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto 1fr;   /* scale, header, body */
   width: 100%;
   height: 100%;
 }
@@ -35,7 +35,8 @@ header {
   gap: 10px;
   padding: 6px 12px;
   background: var(--panel);
-  border-bottom: 1px solid #000;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid var(--rule);
 }
 header h1 {
   font-size: 14px;
@@ -53,14 +54,16 @@ header button {
 }
 
 /* ── Scale ───────────────────────────────────────────── */
+/* Anchored to the right but inset by ~10% of the viewport so it sits
+   slightly off the edge — gives a clear contrast against the subject
+   when sighting along it. */
 #scale-section {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;   /* anchor scale to right edge */
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--rule);
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 6px 10vw 6px 6px;
   overflow-x: auto;
-  background: #1d1d1d;
+  background: var(--bg);
 }
 #scale-host {
   /* SVG dimensions set inline by JS so the scale renders at exact

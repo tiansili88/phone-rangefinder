@@ -29,7 +29,7 @@ const FILM_DIAG = {
   "810": Math.hypot(203, 254),
 };
 
-const FONT_SIZE = { small: 2.2, medium: 2.8, large: 3.4 };  // mm
+const FONT_SIZE_MM = 3.4;   // always-large; previously a user setting
 
 const DEFAULT_DIS = {
   meter: "1, 1.5, 2, 3, 5, 10",
@@ -244,7 +244,7 @@ function readForm() {
     armMm: parseFloat($("arm").value) * 10,
     distances: parseDistances($("dis").value, units),
     units,
-    fontSize: FONT_SIZE[$("font").value] || FONT_SIZE.large,
+    fontSize: FONT_SIZE_MM,
     hfd: $("hfd").checked,
     foclen: parseFloat($("foclen").value),
     maxN: parseFloat($("maxf").value),
