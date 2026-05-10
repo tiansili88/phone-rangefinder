@@ -13,19 +13,27 @@
   <div id="calibration" class="overlay" hidden>
     <div class="cal-inner">
       <h2>One-time calibration</h2>
-      <p>Hold a credit card or ID against the screen and drag the slider until
-         the on-screen rectangle matches its size exactly.
-         (Standard card: 85.6 × 54&nbsp;mm.)</p>
-      <div id="cal-card-wrap">
-        <div id="cal-card"></div>
+
+      <div id="cal-rotate" hidden>
+        <p class="cal-rotate-msg">Please rotate your phone to <strong>landscape</strong>.<br>
+           A credit card (85.6&nbsp;mm wide) won't fit upright on most phones.</p>
       </div>
-      <input id="cal-slider" type="range" min="2.5" max="8" step="0.01" value="3.78" />
-      <div class="cal-row">
-        <span><span id="cal-pxmm">3.78</span> px / mm</span>
-        <button id="cal-save" type="button">Save</button>
+
+      <div id="cal-controls">
+        <p>Hold a credit card or ID against the screen and drag the slider until
+           the on-screen rectangle matches its size exactly.
+           (Standard card: 85.6 × 54&nbsp;mm.)</p>
+        <div id="cal-card-wrap">
+          <div id="cal-card"></div>
+        </div>
+        <input id="cal-slider" type="range" min="2.5" max="8" step="0.01" value="3.78" />
+        <div class="cal-row">
+          <span><span id="cal-pxmm">3.78</span> px / mm</span>
+          <button id="cal-save" type="button">Save</button>
+        </div>
+        <p class="cal-note">This value is saved on this device only.
+           Tap “Recalibrate” later if you switch devices or screen zoom.</p>
       </div>
-      <p class="cal-note">This value is saved on this device only.
-         Tap “Recalibrate” later if you switch devices or screen zoom.</p>
     </div>
   </div>
 
