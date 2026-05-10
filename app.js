@@ -74,8 +74,8 @@ function showCalibration() {
   applySlider();
   function applySlider() {
     const px = parseFloat(slider.value);
+    // Long side only — height is fixed in CSS.
     card.style.width = (85.6 * px) + "px";
-    card.style.height = (54 * px) + "px";
     lbl.textContent = px.toFixed(2);
   }
   if (!calWired) {

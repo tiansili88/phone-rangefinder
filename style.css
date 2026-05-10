@@ -12,17 +12,36 @@
 
 html, body {
   margin: 0;
+  height: 100%;
   background: var(--bg);
   color: var(--ink);
   font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-html, body { height: 100%; }
+html, body { overflow: hidden; }
 
-body {
+/* Layout container — also the rotation target in portrait viewports */
+#rotwrap {
   display: grid;
   grid-template-rows: auto 1fr;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+/* In a portrait viewport, rotate the entire layout 90° so the long screen
+   axis is horizontal. The user holds the phone sideways (volume buttons
+   pointing down) and sees a landscape layout — works regardless of iOS
+   rotation-lock state. */
+@media (orientation: portrait) {
+  #rotwrap {
+    width: 100vh;
+    height: 100vw;
+    transform-origin: 0 0;
+    transform: translateX(100vw) rotate(90deg);
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 }
 
 header {
@@ -60,14 +79,13 @@ header button {
   justify-content: center;
   padding: 12px;
   background: #2a2a2a;
-  overflow: auto;       /* in case the card is taller than the panel */
+  overflow: auto;
 }
 
 #card-host {
   background: var(--card-bg);
   color: var(--card-ink);
   box-shadow: 0 4px 20px rgba(0,0,0,.4);
-  /* width/height set inline by JS using calibration */
 }
 
 form#rfform {
@@ -142,58 +160,43 @@ form fieldset legend {
   margin: 8px 0 4px;
 }
 
-/* ───────────── Always render landscape ─────────────
-   When the viewport is portrait (e.g. phone held upright, or held
-   sideways with rotation lock keeping the viewport portrait), rotate
-   the entire body 90° so the long axis becomes horizontal. The user
-   physically holds the phone in landscape (volume buttons down) and
-   sees the layout upright, regardless of iOS rotation-lock state. */
-@media (orientation: portrait) {
-  html { overflow: hidden; }
-  body {
-    width: 100vh;
-    height: 100vw;
-    transform-origin: 0 0;
-    transform: translateX(100vw) rotate(90deg);
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-}
-
 /* ───────────── Calibration overlay ───────────── */
 .overlay {
-  position: fixed;
+  position: absolute;     /* relative to #rotwrap, so inherits rotation */
   inset: 0;
   background: rgba(0,0,0,0.92);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 12px;
 }
 .overlay[hidden] { display: none; }
 .cal-inner {
-  max-width: 460px;
+  max-width: 560px;
   width: 100%;
   background: var(--panel);
   border-radius: 10px;
-  padding: 14px 18px;
+  padding: 12px 16px;
   text-align: center;
   max-height: 100%;
   overflow-y: auto;
 }
-.cal-inner h2 { margin-top: 0; font-size: 18px; }
-.cal-inner p { font-size: 13px; }
+.cal-inner h2 { margin: 0 0 6px; font-size: 18px; }
+.cal-inner p { margin: 6px 0; font-size: 13px; }
 #cal-card-wrap {
   display: flex;
   justify-content: center;
-  margin: 14px 0;
+  margin: 10px 0;
 }
+/* The calibration target is now just the long side of a credit card —
+   a horizontal bar 85.6 mm wide. Avoids the full-card rectangle that
+   wouldn't fit alongside Safari's chrome. */
 #cal-card {
   background: var(--accent);
   border-radius: 4px;
-  /* width / height set by JS in pixels */
+  height: 8px;
+  /* width set by JS in pixels */
 }
 #cal-slider { width: 100%; }
 .cal-row {
@@ -214,5 +217,5 @@ form fieldset legend {
 .cal-note {
   font-size: 11px;
   color: var(--muted);
-  margin-top: 10px;
+  margin-top: 8px;
 }

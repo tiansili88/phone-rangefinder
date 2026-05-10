@@ -9,13 +9,15 @@
 </head>
 <body>
 
+<div id="rotwrap">
+
   <!-- Calibration overlay (shown until a px/mm value is saved) -->
   <div id="calibration" class="overlay" hidden>
     <div class="cal-inner">
-      <h2>One-time calibration</h2>
-      <p>Hold a credit card or ID against the screen and drag the slider until
-         the on-screen rectangle matches its size exactly.
-         (Standard card: 85.6 × 54&nbsp;mm.)</p>
+      <h2>Calibrate</h2>
+      <p>Hold a credit card against the screen and drag the slider until the
+         orange bar matches the <strong>long side</strong> of the card
+         (85.6 mm).</p>
       <div id="cal-card-wrap">
         <div id="cal-card"></div>
       </div>
@@ -24,8 +26,7 @@
         <span><span id="cal-pxmm">3.78</span> px / mm</span>
         <button id="cal-save" type="button">Save</button>
       </div>
-      <p class="cal-note">This value is saved on this device only.
-         Tap “Recalibrate” later if you switch devices or screen zoom.</p>
+      <p class="cal-note">Saved on this device. Tap “Recalibrate” to redo.</p>
     </div>
   </div>
 
@@ -128,6 +129,8 @@
       <p class="footer-note">Based on tomchuk.com/rf — re-implemented for phone use.</p>
     </form>
   </div>
+
+</div><!-- /#rotwrap -->
 
   <script src="app.js"></script>
 </body>
