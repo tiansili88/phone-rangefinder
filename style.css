@@ -64,14 +64,14 @@ header button {
 }
 
 /* ── Scale ───────────────────────────────────────────── */
-/* Anchored to the right but inset by ~10% of the viewport so it sits
-   slightly off the edge — gives a clear contrast against the subject
-   when sighting along it. */
+/* Anchored to the right but inset by 70 px so the right end of the
+   scale clears the rounded top-right corner on iPhone 16 Pro and
+   similar phones. */
 #scale-section {
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
-  padding: 6px 10vw 6px 6px;
+  padding: 10px 70px 6px 6px;
   overflow-x: auto;
   background: var(--bg);
 }
@@ -187,6 +187,11 @@ form fieldset legend {
 }
 .hfd-row .stop { color: var(--muted); }
 .hfd-row .dist { color: var(--ink); }
+.hfd-sep {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 14px 0;
+}
 
 /* ── Calibration overlay ─────────────────────────────── */
 .overlay {

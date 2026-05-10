@@ -137,8 +137,9 @@ function buildScale(opts) {
   const { eyeMm, armMm, distances, units, fontSize } = opts;
 
   const scaleLen = Math.max(eyeMm, ...distances.map(d => eyeMm * armMm / d.mm));
-  const sideMargin = Math.max(2, fontSize * 1.2);   // room for end labels
-  const widthMm = scaleLen + sideMargin * 2;
+  const leftMargin = Math.max(2, fontSize * 1.2);
+  const rightMargin = Math.max(2, fontSize * 2.6);   // room for ∞ glyph + unit
+  const widthMm = scaleLen + leftMargin + rightMargin;
 
   const yTop = 0.4;
   const yBase = yTop + 2.2;            // short tick bottom = scale baseline
@@ -146,8 +147,8 @@ function buildScale(opts) {
   const yLabel = yLong + fontSize + 0.6;
   const heightMm = yLabel + 1.0;
 
-  const xLeft = sideMargin;            // "0"
-  const xRight = sideMargin + scaleLen; // "∞"
+  const xLeft = leftMargin;            // "0"
+  const xRight = leftMargin + scaleLen; // "∞"
   const tickPos = (mm) => xRight - (eyeMm * armMm / mm);
 
   const svg = el("svg", {
@@ -185,9 +186,9 @@ function buildScale(opts) {
   }
   drawTick(xRight, "∞", true);
 
-  // Unit suffix next to ∞
+  // Unit suffix next to ∞ (with extra clearance — ∞ glyph is wide).
   svg.appendChild(el("text", {
-    x: xRight + 0.6, y: yLabel,
+    x: xRight + fontSize * 1.3, y: yLabel,
     "text-anchor": "start",
     "font-size": fontSize * 0.75,
     fill: "#9a9a9a",
@@ -198,7 +199,49 @@ function buildScale(opts) {
   return { svg, widthMm, heightMm };
 }
 
-// Builds the hyperfocal table as plain HTML in the right-hand panel.
+// Standard whole-stop range used for the flash exposure table.
+const FLASH_STOPS = STD_STOPS.filter(s => s.name >= 2 && s.name <= 22);
+
+function makeRow(stopName, distText) {
+  const row = document.createElement("div");
+  row.className = "hfd-row";
+  const stop = document.createElement("span");
+  stop.className = "stop";
+  stop.textContent = fmtStop(stopName);
+  const dist = document.createElement("span");
+  dist.className = "dist";
+  dist.textContent = distText;
+  row.appendChild(stop);
+  row.appendChild(dist);
+  return row;
+}
+
+function makeSectionTitle(text) {
+  const el = document.createElement("div");
+  el.className = "hfd-title";
+  el.textContent = text;
+  return el;
+}
+
+// Builds the right-hand panel content: stitches together optional HFD
+// and flash sections.
+function buildSidePanel(opts) {
+  const wrap = document.createElement("div");
+  const hfd = buildHfdHtml(opts);
+  if (hfd) wrap.appendChild(hfd);
+  const flash = buildFlashHtml(opts);
+  if (flash) {
+    if (hfd) {
+      const sep = document.createElement("hr");
+      sep.className = "hfd-sep";
+      wrap.appendChild(sep);
+    }
+    wrap.appendChild(flash);
+  }
+  return wrap.children.length ? wrap : null;
+}
+
+// Builds the hyperfocal table as plain HTML.
 function buildHfdHtml(opts) {
   const { hfd, foclen, maxN, minN, film, cocOverride, units } = opts;
   if (!hfd) return null;
@@ -209,28 +252,33 @@ function buildHfdHtml(opts) {
   const stops = fStopList(maxN, minN);
 
   const wrap = document.createElement("div");
-
-  const title = document.createElement("div");
-  title.className = "hfd-title";
-  title.textContent = `${trimNum(foclen)} mm  ${fmtStop(maxN)} – ${fmtStop(minN)}`;
-  wrap.appendChild(title);
-
+  wrap.appendChild(makeSectionTitle(
+    `Hyperfocal — ${trimNum(foclen)} mm  ${fmtStop(maxN)}–${fmtStop(minN)}`
+  ));
   for (const N of stops) {
     const Hmm = (foclen * foclen) / (N.exact * c);
-    const row = document.createElement("div");
-    row.className = "hfd-row";
+    wrap.appendChild(makeRow(N.name, fmtDistance(Hmm, units)));
+  }
+  return wrap;
+}
 
-    const stop = document.createElement("span");
-    stop.className = "stop";
-    stop.textContent = fmtStop(N.name);
+// Flash exposure table.
+//   gn_eff = gn_base × √(ISO / 100)
+//   distance = gn_eff / aperture
+// gn is entered in the user's chosen distance unit (feet or metres).
+function buildFlashHtml(opts) {
+  const { flash, iso, gn, units } = opts;
+  if (!flash || !(gn > 0) || !(iso > 0)) return null;
 
-    const dist = document.createElement("span");
-    dist.className = "dist";
-    dist.textContent = fmtDistance(Hmm, units);
-
-    row.appendChild(stop);
-    row.appendChild(dist);
-    wrap.appendChild(row);
+  const gnEff = gn * Math.sqrt(iso / 100);
+  const factor = units === "feet" ? 304.8 : 1000;
+  const wrap = document.createElement("div");
+  wrap.appendChild(makeSectionTitle(
+    `Flash — ISO ${iso}, GN ${trimNum(+gnEff.toFixed(1))}`
+  ));
+  for (const N of FLASH_STOPS) {
+    const distUserUnits = gnEff / N.exact;
+    wrap.appendChild(makeRow(N.name, fmtDistance(distUserUnits * factor, units)));
   }
   return wrap;
 }
@@ -251,6 +299,9 @@ function readForm() {
     minN: parseFloat($("minf").value),
     film: $("film").value,
     cocOverride: parseFloat($("coc").value) || 0,
+    flash: $("flash").checked,
+    iso: parseFloat($("iso").value),
+    gn: parseFloat($("gn").value) || 0,
   };
 }
 
@@ -272,11 +323,12 @@ function render() {
   host.style.height = hPx + "px";
   host.appendChild(svg);
 
-  // HFD table
-  const hfdPanel = $("hfd-panel");
-  hfdPanel.innerHTML = "";
-  const hfdHtml = buildHfdHtml(opts);
-  if (hfdHtml) hfdPanel.appendChild(hfdHtml);
+  // Right-hand panel (HFD + flash sections, shown only when their
+  // checkboxes are on)
+  const sidePanel = $("hfd-panel");
+  sidePanel.innerHTML = "";
+  const panelContent = buildSidePanel(opts);
+  if (panelContent) sidePanel.appendChild(panelContent);
 }
 
 // Always-landscape: when viewport is portrait, rotate #rotwrap 90° (CW)
@@ -307,9 +359,20 @@ function init() {
     node.addEventListener("change", render);
   });
 
-  $("hfd").addEventListener("change", () => {
+  function refreshFieldsetDimming() {
     $("hfd-fields").style.opacity = $("hfd").checked ? "1" : "0.4";
-  });
+    $("flash-fields").style.opacity = $("flash").checked ? "1" : "0.4";
+  }
+  $("hfd").addEventListener("change", refreshFieldsetDimming);
+  $("flash").addEventListener("change", refreshFieldsetDimming);
+  refreshFieldsetDimming();
+
+  // Keep the GN-unit hint in sync with the distance unit selector
+  function refreshGnUnit() {
+    $("gn-unit").textContent = $("units").value === "feet" ? "ft" : "m";
+  }
+  $("units").addEventListener("change", refreshGnUnit);
+  refreshGnUnit();
 
   $("use-defaults").addEventListener("click", () => {
     $("dis").value = DEFAULT_DIS[$("units").value] || DEFAULT_DIS.meter;

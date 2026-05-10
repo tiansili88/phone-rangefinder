@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=7" />
+  <link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
 
@@ -78,12 +78,12 @@
       </label>
 
       <label class="checkbox">
-        <input type="checkbox" id="hfd" checked />
-        Show hyperfocal-distance table
+        <input type="checkbox" id="hfd" />
+        Hyperfocal-distance table
       </label>
 
       <fieldset id="hfd-fields">
-        <legend>Hyperfocal chart</legend>
+        <legend>Hyperfocal settings</legend>
 
         <label>Focal length (mm)
           <input type="number" id="foclen" step="1" min="6" max="2000" value="40" />
@@ -122,6 +122,23 @@
         </label>
       </fieldset>
 
+      <label class="checkbox">
+        <input type="checkbox" id="flash" />
+        Flash exposure table
+      </label>
+
+      <fieldset id="flash-fields">
+        <legend>Flash settings</legend>
+
+        <label>ISO
+          <input type="number" id="iso" step="100" min="25" max="409600" value="100" />
+        </label>
+
+        <label>Guide number (at ISO 100, in <span id="gn-unit">m</span>)
+          <input type="number" id="gn" step="0.1" min="0" placeholder="e.g. 17 m or 56 ft" />
+        </label>
+      </fieldset>
+
       <p class="footer-note">Based on tomchuk.com/rf — re-implemented for phone use.</p>
     </form>
 
@@ -130,6 +147,6 @@
 
 </div><!-- /#rotwrap -->
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
