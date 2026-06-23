@@ -204,12 +204,15 @@ function buildScale(opts) {
 // (Flash now uses the user's lens aperture range, same as HFD, so the
 //  two side-by-side tables align row-by-row.)
 
-function makeRow(stopName, distText) {
+// Row helper used by every side-panel section. Caller passes the
+// label text already formatted (e.g. fmtStop(2.8) for HFD/Flash; a
+// plain string like "Focus" for IR).
+function makeRow(labelText, distText) {
   const row = document.createElement("div");
   row.className = "hfd-row";
   const stop = document.createElement("span");
   stop.className = "stop";
-  stop.textContent = fmtStop(stopName);
+  stop.textContent = labelText;
   const dist = document.createElement("span");
   dist.className = "dist";
   dist.textContent = distText;
@@ -236,15 +239,14 @@ function makeSectionTitle(name, params) {
 
 // Builds the right-hand panel content: stitches together optional HFD
 // and flash sections.
-// HFD and flash sections sit side-by-side as columns when both are
-// enabled — keeps each table narrow so the form panel stays usable.
+// HFD, flash and IR sections sit side-by-side as columns when enabled
+// — keeps each table narrow so the form panel stays usable.
 function buildSidePanel(opts) {
   const wrap = document.createElement("div");
   wrap.className = "side-panel-grid";
-  const hfd = buildHfdHtml(opts);
-  if (hfd) wrap.appendChild(hfd);
-  const flash = buildFlashHtml(opts);
-  if (flash) wrap.appendChild(flash);
+  for (const sec of [buildHfdHtml(opts), buildFlashHtml(opts), buildIrHtml(opts)]) {
+    if (sec) wrap.appendChild(sec);
+  }
   return wrap.children.length ? wrap : null;
 }
 
@@ -382,6 +384,44 @@ function computeHfd(opts) {
   };
 }
 
+// IR 720 focus shift.
+// A non-IR-corrected lens has a slightly longer effective focal length
+// at 720 nm than in visible light (typical glass dispersion gives a
+// shift of ~0.3% of focal length — varies by lens). If the lens is
+// focused at object distance D_v in visible light, the IR focal plane
+// lands at D_ir given:
+//
+//   1/D_ir = 1/D_v - δf/(f_v · f_ir),  with δf = f_ir - f_v
+//
+// To put the IR focal plane at the actual subject distance D_subject,
+// the focus ring must be set to D_v = 1 / (1/D_subject + δf/f²).
+const IR720_FACTOR = 0.003;             // δf / f for typical glass at 720 nm
+
+function computeIR(opts) {
+  const { ir, foclen, irDistMm, units } = opts;
+  if (!ir || !(foclen > 0) || !(irDistMm > 0)) return null;
+
+  const f_mm = foclen;
+  const df_mm = f_mm * IR720_FACTOR;
+  const invSetting = 1 / irDistMm + df_mm / (f_mm * f_mm);
+  const D_setting_mm = 1 / invSetting;
+  const shift_mm = irDistMm - D_setting_mm;
+
+  return {
+    title: "IR 720",
+    sub: `${trimNum(foclen)} mm · subject ${fmtDistance(irDistMm, units)}`,
+    // Re-use the same row shape as HFD/Flash so the side panel renders
+    // it identically — "stopName" carries the label, "dist" the value.
+    rows: [
+      { stopName: "Focus", dist: fmtDistance(D_setting_mm, units) },
+      { stopName: "Shift",
+        dist: fmtDistance(Math.abs(shift_mm), units) +
+              (shift_mm > 0 ? " closer" : " farther") },
+    ],
+    plain: true,   // suppress 'f/' prefix in row rendering
+  };
+}
+
 // gn_eff = gn_base × √(ISO/100); distance = gn_eff / aperture (in user units).
 // Uses the lens aperture range (maxN..minN), matching the HFD table so the
 // two side-by-side tables align row-by-row.
@@ -407,12 +447,21 @@ function buildHfdHtml(opts) {
   if (!data) return null;
   const wrap = document.createElement("div");
   wrap.appendChild(makeSectionTitle(data.title, data.sub));
-  for (const r of data.rows) wrap.appendChild(makeRow(r.stopName, r.dist));
+  for (const r of data.rows) wrap.appendChild(makeRow(fmtStop(r.stopName), r.dist));
   return wrap;
 }
 
 function buildFlashHtml(opts) {
   const data = computeFlash(opts);
+  if (!data) return null;
+  const wrap = document.createElement("div");
+  wrap.appendChild(makeSectionTitle(data.title, data.sub));
+  for (const r of data.rows) wrap.appendChild(makeRow(fmtStop(r.stopName), r.dist));
+  return wrap;
+}
+
+function buildIrHtml(opts) {
+  const data = computeIR(opts);
   if (!data) return null;
   const wrap = document.createElement("div");
   wrap.appendChild(makeSectionTitle(data.title, data.sub));
@@ -454,6 +503,9 @@ function readForm() {
     flash: $("flash").checked,
     iso: parseFloat($("iso").value),
     gn: parseFloat($("gn").value) || 0,
+    ir: $("ir").checked,
+    irDistMm: (parseFloat($("ir-dist").value) || 0)
+      * (units === "feet" ? 304.8 : 1000),
   };
 }
 
@@ -530,17 +582,21 @@ function init() {
   function refreshFieldsetDimming() {
     $("hfd-fields").style.opacity = $("hfd").checked ? "1" : "0.4";
     $("flash-fields").style.opacity = $("flash").checked ? "1" : "0.4";
+    $("ir-fields").style.opacity = $("ir").checked ? "1" : "0.4";
   }
   $("hfd").addEventListener("change", refreshFieldsetDimming);
   $("flash").addEventListener("change", refreshFieldsetDimming);
+  $("ir").addEventListener("change", refreshFieldsetDimming);
   refreshFieldsetDimming();
 
-  // Keep the GN-unit hint in sync with the distance unit selector
-  function refreshGnUnit() {
-    $("gn-unit").textContent = fieldValue("units") === "feet" ? "ft" : "m";
+  // Keep unit hints in sync with the distance unit selector
+  function refreshUnitHints() {
+    const u = fieldValue("units") === "feet" ? "ft" : "m";
+    $("gn-unit").textContent = u;
+    document.querySelectorAll(".u-dist").forEach(el => el.textContent = u);
   }
-  $("units").addEventListener("change", refreshGnUnit);
-  refreshGnUnit();
+  $("units").addEventListener("change", refreshUnitHints);
+  refreshUnitHints();
 
   $("use-defaults").addEventListener("click", () => {
     $("dis").value = DEFAULT_DIS[fieldValue("units")] || DEFAULT_DIS.meter;

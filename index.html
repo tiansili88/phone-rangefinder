@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=33" />
+  <link rel="stylesheet" href="style.css?v=34" />
 </head>
 <body>
 
@@ -128,6 +128,20 @@
         Flash exposure table
       </label>
 
+      <label class="checkbox">
+        <input type="checkbox" id="ir" />
+        IR 720 focus shift
+      </label>
+
+      <fieldset id="ir-fields">
+        <legend>IR 720 settings</legend>
+
+        <label>
+          <span>Subject distance (<span class="u-dist">m</span>)</span>
+          <input type="number" id="ir-dist" step="0.1" min="0" value="5" />
+        </label>
+      </fieldset>
+
       <fieldset id="flash-fields">
         <legend>Flash settings</legend>
 
@@ -157,6 +171,6 @@
   <!-- Hidden in screen layout; shown only when printing -->
   <div id="print-area"></div>
 
-  <script src="app.js?v=33"></script>
+  <script src="app.js?v=34"></script>
 </body>
 </html>
