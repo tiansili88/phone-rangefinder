@@ -111,11 +111,14 @@ function fmtStop(n) {
   return "f/" + (Number.isInteger(n) ? String(n) : String(+n.toFixed(1)));
 }
 
-function fmtDistance(mm, units) {
-  if (units === "feet") return Math.round(mm / 304.8) + "ft";
+function fmtDistance(mm, units, extraDecimals = 0) {
+  if (units === "feet") {
+    const ft = mm / 304.8;
+    return ft.toFixed(extraDecimals) + "ft";
+  }
   const m = mm / 1000;
-  if (m >= 10) return Math.round(m) + "m";
-  return (Math.round(m * 10) / 10) + "m";
+  if (m >= 10) return m.toFixed(extraDecimals) + "m";
+  return m.toFixed(1 + extraDecimals) + "m";
 }
 
 // ───────────────────── SVG render ─────────────────────
@@ -408,11 +411,11 @@ function computeIR(opts) {
 
   return {
     title: "IR 720",
-    sub: `${trimNum(foclen)} mm · subject ${fmtDistance(irDistMm, units)}`,
+    sub: `${trimNum(foclen)} mm · subject ${fmtDistance(irDistMm, units, 1)}`,
     // Re-use the same row shape as HFD/Flash so the side panel renders
     // it identically — "stopName" carries the label, "dist" the value.
     rows: [
-      { stopName: "Corrected", dist: fmtDistance(D_setting_mm, units) },
+      { stopName: "Corrected", dist: fmtDistance(D_setting_mm, units, 1) },
     ],
   };
 }
