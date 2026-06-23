@@ -405,7 +405,6 @@ function computeIR(opts) {
   const df_mm = f_mm * IR720_FACTOR;
   const invSetting = 1 / irDistMm + df_mm / (f_mm * f_mm);
   const D_setting_mm = 1 / invSetting;
-  const shift_mm = irDistMm - D_setting_mm;
 
   return {
     title: "IR 720",
@@ -413,12 +412,8 @@ function computeIR(opts) {
     // Re-use the same row shape as HFD/Flash so the side panel renders
     // it identically — "stopName" carries the label, "dist" the value.
     rows: [
-      { stopName: "Focus", dist: fmtDistance(D_setting_mm, units) },
-      { stopName: "Shift",
-        dist: fmtDistance(Math.abs(shift_mm), units) +
-              (shift_mm > 0 ? " closer" : " farther") },
+      { stopName: "Corrected", dist: fmtDistance(D_setting_mm, units) },
     ],
-    plain: true,   // suppress 'f/' prefix in row rendering
   };
 }
 
