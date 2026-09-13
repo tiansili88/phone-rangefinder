@@ -322,19 +322,33 @@ function buildPrintCard(opts) {
   const xRight = xLeft + scaleLen;
   const tickPos = mm => xRight - (eyeMm * armMm / mm);
 
+  // Two mirror-image layouts. "below" (default) hangs the ticks from the
+  // top edge with the numbers underneath; "above" puts the numbers on top
+  // and the ticks below them, so the tick ends sit at the bottom of the
+  // scale block — handy when the card is trimmed along that edge.
   const labelFont = 2.4 * s;
-  const yTop = 1.5 * s;
-  const yBase = 4.0 * s;
-  const yLong = 4.7 * s;
-  const yLabel = yLong + labelFont + 0.5;
+  const top = 1.5 * s;
+  const tickLen = 2.5 * s;   // tick body, from its free end to the baseline
+  const over = 0.7 * s;      // how far the 0 / ∞ anchors overshoot it
+  const flip = opts.labelPos === "above";
+
+  const yLabel = flip ? top + labelFont
+                      : top + tickLen + over + labelFont + 0.5;
+  const yBase = flip ? yLabel + 0.5 + over : top + tickLen;
+  const scaleBottom = flip ? yBase + tickLen : yLabel;
+  // [free end, baseline end] of a tick; anchors overshoot toward the labels.
+  const tickSpan = anchor => flip
+    ? [anchor ? yBase - over : yBase, yBase + tickLen]
+    : [top, anchor ? yBase + over : yBase];
 
   svg.appendChild(el("line", {
     x1: xLeft, y1: yBase, x2: xRight, y2: yBase,
     stroke: "black", "stroke-width": 0.3,
   }));
   function tick(x, label, anchor) {
+    const [y1, y2] = tickSpan(anchor);
     svg.appendChild(el("line", {
-      x1: x, y1: yTop, x2: x, y2: anchor ? yLong : yBase,
+      x1: x, y1, x2: x, y2,
       stroke: "black", "stroke-width": anchor ? 0.5 : 0.3,
     }));
     svg.appendChild(el("text", {
@@ -403,7 +417,7 @@ function buildPrintCard(opts) {
     // paired on a wide card instead of drifting to opposite edges.
     const pitch = (avail + gap) / perRow;
     const colW = Math.min(pitch - gap, 24 * s);
-    let y = yLabel + 3 * s;
+    let y = scaleBottom + 3 * s;
     for (let i = 0; i < blocks.length; i += perRow) {
       const row = blocks.slice(i, i + perRow);
       if (y + titleFont + subFont > bottom) break;
@@ -567,6 +581,7 @@ function readForm() {
     cardSize: fieldValue("cardsize"),
     cardW: parseFloat($("card-w").value),
     cardH: parseFloat($("card-h").value),
+    labelPos: fieldValue("labelpos"),
   };
 }
 
