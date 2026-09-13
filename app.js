@@ -29,6 +29,36 @@ const FILM_DIAG = {
 
 const FONT_SIZE_MM = 3.4;   // always-large; previously a user setting
 
+// Printable card presets, in millimetres. "custom" reads the two number
+// inputs instead. The rangefinder scale is always drawn at true physical
+// size (its length is exactly the eye offset), so a card narrower than the
+// eye offset can't hold the whole scale — cardDims() flags that case.
+const CARD_SIZES = {
+  business: { w: 88.9,  h: 50.8,  label: "3.5\u2033 \u00d7 2\u2033" },
+  credit:   { w: 85.6,  h: 53.98, label: "85.6 \u00d7 54 mm" },
+  a7:       { w: 105,   h: 74,    label: "A7, 105 \u00d7 74 mm" },
+  a6:       { w: 148,   h: 105,   label: "A6, 148 \u00d7 105 mm" },
+  index46:  { w: 152.4, h: 101.6, label: "6\u2033 \u00d7 4\u2033" },
+};
+
+const CARD_MIN = { w: 40, h: 25 };
+const CARD_MAX = { w: 420, h: 297 };
+
+// Resolve the requested card size to concrete millimetres.
+function cardDims(opts) {
+  if (opts.cardSize === "custom") {
+    const w = clamp(opts.cardW, CARD_MIN.w, CARD_MAX.w);
+    const h = clamp(opts.cardH, CARD_MIN.h, CARD_MAX.h);
+    return { w, h, label: `${trimNum(round1(w))} \u00d7 ${trimNum(round1(h))} mm` };
+  }
+  const preset = CARD_SIZES[opts.cardSize] || CARD_SIZES.business;
+  return { ...preset };
+}
+
+const clamp = (v, lo, hi) =>
+  Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo;
+const round1 = (v) => Math.round(v * 10) / 10;
+
 const DEFAULT_DIS = {
   meter: "0.8, 1, 1.5, 2, 3, 5, 10",
   feet:  "3, 4, 6, 10, 20",
@@ -107,7 +137,10 @@ function fStopList(maxN, minN) {
   return out;
 }
 
+// Rows are usually keyed by aperture, but the IR table uses word labels
+// ("Marked", "Corrected") — pass those through untouched.
 function fmtStop(n) {
+  if (typeof n !== "number") return String(n);
   return "f/" + (Number.isInteger(n) ? String(n) : String(+n.toFixed(1)));
 }
 
@@ -253,11 +286,17 @@ function buildSidePanel(opts) {
   return wrap.children.length ? wrap : null;
 }
 
-// ── Printable 3.5″ × 2″ card (full SVG with frame, scale, and tables)
+// ── Printable card (full SVG with frame, scale, and tables)
+// Size comes from the "Card size" control; the layout adapts to it.
 
 function buildPrintCard(opts) {
-  const W = 88.9, H = 50.8;          // ISO/ANSI business-card size
+  const { w: W, h: H } = cardDims(opts);
   const ff = "Helvetica, Arial, sans-serif";
+
+  // Type scales gently with the card so a 6″ × 4″ card isn't set in
+  // business-card-sized 1.8 mm text, but never shrinks below the original.
+  const s = clamp(Math.min(W / 88.9, H / 50.8), 1, 1.8);
+  const margin = Math.max(4, W * 0.05);
 
   const svg = el("svg", {
     xmlns: SVG_NS,
@@ -266,6 +305,8 @@ function buildPrintCard(opts) {
     "shape-rendering": "geometricPrecision",
     "text-rendering": "geometricPrecision",
   });
+  svg.style.width = `${W}mm`;
+  svg.style.height = `${H}mm`;
 
   // Card frame
   svg.appendChild(el("rect", {
@@ -273,17 +314,18 @@ function buildPrintCard(opts) {
     fill: "white", stroke: "black", "stroke-width": 0.2,
   }));
 
-  // Scale (centred horizontally) — physical length is exactly E mm.
+  // Scale (centred horizontally) — physical length is exactly E mm, so it
+  // is never scaled with the card.
   const eyeMm = opts.eyeMm, armMm = opts.armMm;
   const scaleLen = eyeMm;
   const xLeft = (W - scaleLen) / 2;
   const xRight = xLeft + scaleLen;
   const tickPos = mm => xRight - (eyeMm * armMm / mm);
 
-  const labelFont = 2.4;
-  const yTop = 1.5;
-  const yBase = 4.0;
-  const yLong = 4.7;
+  const labelFont = 2.4 * s;
+  const yTop = 1.5 * s;
+  const yBase = 4.0 * s;
+  const yLong = 4.7 * s;
   const yLabel = yLong + labelFont + 0.5;
 
   svg.appendChild(el("line", {
@@ -313,16 +355,22 @@ function buildPrintCard(opts) {
     "font-style": "italic", "font-family": ff,
   }, opts.units === "feet" ? "ft" : "m"));
 
-  // Tables below the scale: HFD on the left, Flash on the right.
-  const tableTop = yLabel + 3;
-  const titleFont = 2.0;
-  const subFont = 1.55;
-  const rowFont = 1.85;
-  const rowH = 2.15;
-  const colW = 18;                    // stop label → distance column
+  // Tables below the scale. Columns are packed across the available width;
+  // a bigger card fits more of them side by side, and more rows each.
+  const titleFont = 2.0 * s;
+  const subFont = 1.55 * s;
+  const rowFont = 1.85 * s;
+  const rowH = 2.15 * s;
+  const gap = 4 * s;
+  const minColW = 30 * Math.min(s, 1.25);   // wide cards pack more columns
+  const bottom = H - 1.2 * s - 1.3 * s - 0.8;   // keep clear of the credit
 
-  function drawColumn(xCol, data) {
-    let y = tableTop + titleFont;
+  const avail = W - 2 * margin;
+  const blocks = [computeHfd(opts), computeFlash(opts), computeIR(opts)]
+    .filter(Boolean);
+
+  function drawColumn(xCol, yStart, colW, data) {
+    let y = yStart + titleFont;
     svg.appendChild(el("text", {
       x: xCol, y, "font-size": titleFont, "font-family": ff,
       "font-weight": "bold", "letter-spacing": "0.05em",
@@ -333,7 +381,7 @@ function buildPrintCard(opts) {
     }, data.sub));
     y += rowH * 1.2;
     for (const r of data.rows) {
-      if (y + rowFont > H - 1.5) break;
+      if (y + rowFont > bottom) break;
       svg.appendChild(el("text", {
         x: xCol, y, "font-size": rowFont, fill: "#444", "font-family": ff,
       }, fmtStop(r.stopName)));
@@ -343,23 +391,35 @@ function buildPrintCard(opts) {
       }, r.dist));
       y += rowH;
     }
+    return y;
   }
 
-  const hfd = computeHfd(opts);
-  const flash = computeFlash(opts);
-  if (hfd && flash) {
-    drawColumn(5, hfd);
-    drawColumn(W / 2 + 4, flash);
-  } else if (hfd) {
-    drawColumn((W - colW) / 2, hfd);
-  } else if (flash) {
-    drawColumn((W - colW) / 2, flash);
+  if (blocks.length) {
+    const perRow = Math.max(1, Math.min(
+      blocks.length,
+      Math.floor((avail + gap) / (minColW + gap))
+    ));
+    // Cap the column width so the stop label and its distance stay visually
+    // paired on a wide card instead of drifting to opposite edges.
+    const pitch = (avail + gap) / perRow;
+    const colW = Math.min(pitch - gap, 24 * s);
+    let y = yLabel + 3 * s;
+    for (let i = 0; i < blocks.length; i += perRow) {
+      const row = blocks.slice(i, i + perRow);
+      if (y + titleFont + subFont > bottom) break;
+      let rowBottom = y;
+      row.forEach((data, j) => {
+        const x = margin + j * pitch;
+        rowBottom = Math.max(rowBottom, drawColumn(x, y, colW, data));
+      });
+      y = rowBottom + gap * 0.6;
+    }
   }
 
   // Tiny credit at bottom-right
   svg.appendChild(el("text", {
-    x: W - 1.5, y: H - 1.2, "text-anchor": "end",
-    "font-size": 1.3, fill: "#999", "font-family": ff,
+    x: W - 1.5, y: H - 1.2 * s, "text-anchor": "end",
+    "font-size": 1.3 * s, fill: "#999", "font-family": ff,
   }, "tomchuk.com/rf · Sili Tian"));
 
   return svg;
@@ -504,6 +564,9 @@ function readForm() {
     ir: $("ir").checked,
     irDistMm: (parseFloat($("ir-dist").value) || 0)
       * (units === "feet" ? 304.8 : 1000),
+    cardSize: fieldValue("cardsize"),
+    cardW: parseFloat($("card-w").value),
+    cardH: parseFloat($("card-h").value),
   };
 }
 
@@ -531,6 +594,37 @@ function render() {
   sidePanel.innerHTML = "";
   const panelContent = buildSidePanel(opts);
   if (panelContent) sidePanel.appendChild(panelContent);
+
+  refreshCardSize(opts);
+}
+
+// Keeps the card-size UI in step with the form: mirrors the active preset
+// into the custom inputs, dims them while a preset is selected, labels the
+// print button with the size, and warns when the card is too narrow to
+// hold the whole scale.
+function refreshCardSize(opts) {
+  const isCustom = opts.cardSize === "custom";
+  if (!isCustom && CARD_SIZES[opts.cardSize]) {
+    const preset = CARD_SIZES[opts.cardSize];
+    $("card-w").value = trimNum(round1(preset.w));
+    $("card-h").value = trimNum(round1(preset.h));
+  }
+  $("card-fields").style.opacity = isCustom ? "1" : "0.4";
+
+  const dims = cardDims(opts);
+  $("print-card").textContent = `Print card (${dims.label})`;
+
+  const warn = $("card-warn");
+  const needed = opts.eyeMm + 6;
+  if (Number.isFinite(opts.eyeMm) && needed > dims.w) {
+    warn.hidden = false;
+    warn.textContent =
+      `The scale is ${trimNum(round1(opts.eyeMm))} mm long (it always equals ` +
+      `your eye offset), so it won't fit a ${trimNum(round1(dims.w))} mm ` +
+      `card — use a card at least ${trimNum(Math.ceil(needed))} mm wide.`;
+  } else {
+    warn.hidden = true;
+  }
 }
 
 // Always-landscape: when viewport is portrait, rotate #rotwrap 90° (CW)

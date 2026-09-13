@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#111" />
   <title>Human Rangefinder</title>
-  <link rel="stylesheet" href="style.css?v=36" />
+  <link rel="stylesheet" href="style.css?v=37" />
 </head>
 <body>
 
@@ -155,6 +155,31 @@
         </label>
       </fieldset>
 
+      <label>Card size
+        <div id="cardsize" class="seg-toggle" data-value="business">
+          <button type="button" class="seg-opt active" data-value="business">Business 3.5″×2″</button>
+          <button type="button" class="seg-opt" data-value="credit">Credit card</button>
+          <button type="button" class="seg-opt" data-value="a7">A7</button>
+          <button type="button" class="seg-opt" data-value="a6">A6</button>
+          <button type="button" class="seg-opt" data-value="index46">Index 6″×4″</button>
+          <button type="button" class="seg-opt" data-value="custom">Custom</button>
+        </div>
+      </label>
+
+      <fieldset id="card-fields">
+        <legend>Custom card size</legend>
+
+        <label>Width (mm)
+          <input type="number" id="card-w" step="0.1" min="40" max="420" value="88.9" />
+        </label>
+
+        <label>Height (mm)
+          <input type="number" id="card-h" step="0.1" min="25" max="297" value="50.8" />
+        </label>
+
+        <p class="cal-note" id="card-warn" hidden></p>
+      </fieldset>
+
       <button type="button" id="print-card" class="big-action">Print card (3.5″ × 2″)</button>
 
       <p class="footer-note">
@@ -171,6 +196,6 @@
   <!-- Hidden in screen layout; shown only when printing -->
   <div id="print-area"></div>
 
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
 </body>
 </html>

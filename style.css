@@ -234,12 +234,12 @@ button.big-action {
     padding: 0;
     background: white;
   }
+  /* Size comes from the inline width/height the SVG is built with, so the
+     card prints at whatever physical size was selected. */
   #print-area svg {
     display: block;
-    width: 89mm;
-    height: 51mm;
   }
-  @page { margin: 10mm; }
+  @page { size: auto; margin: 10mm; }
 }
 
 /* ── HFD / flash panel (right side) ──────────────────── */
